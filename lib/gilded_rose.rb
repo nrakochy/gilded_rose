@@ -17,11 +17,7 @@ def adjust_quality_of_backstage_passes(passes)
 end
 
 def appreciate_quality_of_item_until_max_quality(item, rate_of_appreciation)
-  if item.quality + rate_of_appreciation <= 50
-    item.quality += rate_of_appreciation
-  else
-    item.quality = 50
-  end
+  item.quality + rate_of_appreciation <= 50 ? item.quality += rate_of_appreciation : item.quality = 50
 end
 
 def calculate_rate_of_non_expired_backstage_passes_appreciation backstage_passes
@@ -48,25 +44,27 @@ def depreciate_item_quality_until_zero(item)
   item.quality -= rate_of_depreciation if item.quality > 0
 end
 
-def specialty_item? item
+def specialty_item?(item)
   item.name == AGED_BRIE || item.name == BACKSTAGE_PASSES || item.name == CONJURED
+end
+
+def calculate_daily_quality_adjustment(item)
+  if !specialty_item?(item)
+    depreciate_item_quality_until_zero(item)
+  else
+    if item.name == BACKSTAGE_PASSES
+      adjust_quality_of_backstage_passes(item)
+    elsif item.name == AGED_BRIE
+      brie_rate = calculate_rate_of_aged_brie_appreciation(item)
+      appreciate_quality_of_item_until_max_quality(item, brie_rate)
+    end
+  end
 end
 
 def update_quality(items)
   items.each do |item|
     return if item.name == SULFURAS
-    if !specialty_item?(item)
-      depreciate_item_quality_until_zero(item)
-    else
-      if item.name == BACKSTAGE_PASSES
-        adjust_quality_of_backstage_passes(item)
-      elsif item.name == AGED_BRIE
-        brie_rate = calculate_rate_of_aged_brie_appreciation(item)
-        appreciate_quality_of_item_until_max_quality(item, brie_rate)
-      elsif item.quality < 50
-        item.quality += 1
-      end
-    end
+    calculate_daily_quality_adjustment(item)
     decrease_days_relative_to_expiration_date(item)
   end
 end
