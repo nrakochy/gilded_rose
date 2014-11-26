@@ -8,20 +8,30 @@ def decrease_days_relative_to_expiration_date(item)
     item.sell_in -= 1
 end
 
-def adjust_value_of_back_stage_passes back_stage_passes
+def adjust_quality_of_backstage_passes(passes)
+  if past_sell_by_date?(passes.sell_in)
+    passes.quality = 0
+  else
+    rate_of_appreciation = calculate_rate_of_non_expired_backstage_passes_appreciation(passes)
+    appreciate_quality_of_backstage_passes_until_max_quality(passes, rate_of_appreciation)
+  end
 end
 
 def past_sell_by_date?(days_until_expiration)
   days_until_expiration == 0
 end
 
-def maximum_quality? back_stage_passes
-  back_stage_passes.quality == 50
-end
-
-def depreciate_item_until_zero item
+def depreciate_item_quality_until_zero(item)
   item.sell_in > 0 ? rate_of_depreciation = 1 : rate_of_depreciation = 2
   item.quality -= rate_of_depreciation if item.quality > 0
+end
+
+def appreciate_quality_of_backstage_passes_until_max_quality(passes, rate_of_appreciation)
+  if passes.quality + rate_of_appreciation <= 50
+    passes.quality += rate_of_appreciation
+  else
+    passes.quality = 50
+  end
 end
 
 def specialty_item? item
@@ -29,9 +39,14 @@ def specialty_item? item
 end
 
 
-def back_stage_quality back_stage_passes
-  case 
-  when back_stage_passes.qua
+def calculate_rate_of_non_expired_backstage_passes_appreciation backstage_passes
+  case
+  when backstage_passes.sell_in > 10
+   rate_of_appreciation = 1
+  when backstage_passes.sell_in <= 5
+    rate_of_appreciation = 3
+  else
+    rate_of_appreciation = 2
   end
 end
 
@@ -39,22 +54,12 @@ def update_quality(items)
   items.each do |item|
     return if item.name == SULFURAS
     if !specialty_item?(item)
-      depreciate_item_until_zero(item)
+      depreciate_item_quality_until_zero(item)
     else
-      if item.quality < 50
+      if item.name == BACKSTAGE_PASSES
+        adjust_quality_of_backstage_passes(item)
+      elsif item.quality < 50
         item.quality += 1
-        if item.name == 'Backstage passes to a TAFKAL80ETC concert'
-          if item.sell_in < 11
-            if item.quality < 50
-              item.quality += 1
-            end
-          end
-          if item.sell_in < 6
-            if item.quality < 50
-              item.quality += 1
-            end
-          end
-        end
       end
     end
     decrease_days_relative_to_expiration_date(item)
