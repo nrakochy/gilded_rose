@@ -23,7 +23,7 @@ def calculate_daily_quality_adjustment(item)
 end
 
 def decrease_days_relative_to_expiration_date(item)
- item.sell_in -= 1
+  item.sell_in -= 1
 end
 
 def adjust_quality_of_backstage_passes(passes)
@@ -39,7 +39,6 @@ def adjust_quality_of_aged_brie(brie)
   brie_rate = calculate_rate_of_aged_brie_appreciation(brie)
   appreciate_quality_of_item_until_max_quality(brie, brie_rate)
 end
-
 
 def appreciate_quality_of_item_until_max_quality(item, rate_of_appreciation)
   item.quality + rate_of_appreciation <= 50 ? item.quality += rate_of_appreciation : item.quality = 50
