@@ -1,4 +1,3 @@
-
 AGED_BRIE = "Aged Brie"
 SULFURAS = "Sulfuras, Hand of Ragnaros"
 BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert"
@@ -13,12 +12,35 @@ def adjust_quality_of_backstage_passes(passes)
     passes.quality = 0
   else
     rate_of_appreciation = calculate_rate_of_non_expired_backstage_passes_appreciation(passes)
-    appreciate_quality_of_backstage_passes_until_max_quality(passes, rate_of_appreciation)
+    appreciate_quality_of_item_until_max_quality(passes, rate_of_appreciation)
   end
 end
 
+def appreciate_quality_of_item_until_max_quality(item, rate_of_appreciation)
+  if item.quality + rate_of_appreciation <= 50
+    item.quality += rate_of_appreciation
+  else
+    item.quality = 50
+  end
+end
+
+def calculate_rate_of_non_expired_backstage_passes_appreciation backstage_passes
+  case
+  when backstage_passes.sell_in > 10
+   rate = 1
+  when backstage_passes.sell_in <= 5
+    rate = 3
+  else
+    rate = 2
+  end
+end
+
+def calculate_rate_of_aged_brie_appreciation(aged_brie)
+  aged_brie.sell_in > 0 ? rate = 1 : rate = 2
+end
+
 def past_sell_by_date?(days_until_expiration)
-  days_until_expiration == 0
+  days_until_expiration <= 0
 end
 
 def depreciate_item_quality_until_zero(item)
@@ -26,28 +48,8 @@ def depreciate_item_quality_until_zero(item)
   item.quality -= rate_of_depreciation if item.quality > 0
 end
 
-def appreciate_quality_of_backstage_passes_until_max_quality(passes, rate_of_appreciation)
-  if passes.quality + rate_of_appreciation <= 50
-    passes.quality += rate_of_appreciation
-  else
-    passes.quality = 50
-  end
-end
-
 def specialty_item? item
   item.name == AGED_BRIE || item.name == BACKSTAGE_PASSES || item.name == CONJURED
-end
-
-
-def calculate_rate_of_non_expired_backstage_passes_appreciation backstage_passes
-  case
-  when backstage_passes.sell_in > 10
-   rate_of_appreciation = 1
-  when backstage_passes.sell_in <= 5
-    rate_of_appreciation = 3
-  else
-    rate_of_appreciation = 2
-  end
 end
 
 def update_quality(items)
@@ -58,22 +60,14 @@ def update_quality(items)
     else
       if item.name == BACKSTAGE_PASSES
         adjust_quality_of_backstage_passes(item)
+      elsif item.name == AGED_BRIE
+        brie_rate = calculate_rate_of_aged_brie_appreciation(item)
+        appreciate_quality_of_item_until_max_quality(item, brie_rate)
       elsif item.quality < 50
         item.quality += 1
       end
     end
     decrease_days_relative_to_expiration_date(item)
-    if item.sell_in < 0
-      if item.name != AGED_BRIE
-        if item.name == BACKSTAGE_PASSES
-          item.quality = item.quality - item.quality
-        end
-      else
-        if item.quality < 50
-          item.quality += 1
-        end
-      end
-    end
   end
 end
 
